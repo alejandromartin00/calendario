@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendario Completo</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin:0;
+    background: #e0f0ff;
+    color:#333;
+  }
+  .wrap {
+    max-width: 1000px;
+    margin:20px auto;
+    padding:20px;
+    background:#fff;
+    border-radius:16px;
+    box-shadow:0 8px 25px rgba(0,0,0,0.15);
+    transition: all 0.3s ease;
+  }
+  h1,h2 { text-align:center; color:#007aff; margin-bottom:12px; }
+
+  /* Calendario mensual */
+  .calendar-month { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-bottom:20px; }
+  .day {
+    background:#f0f8ff;
+    border-radius:12px;
+    min-height:70px;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-start;
+    align-items:flex-start;
+    padding:6px;
+    font-size:12px;
+    transition: transform 0.2s, background 0.3s;
+    position:relative;
+  }
+  .day:hover { transform: translateY(-3px); background:#cfe6ff; }
+  .day.today { background:#007aff; color:#fff; font-weight:bold; }
+
+  .tasks-preview {
+    font-size:10px;
+    color:#005f99;
+    margin-top:4px;
+    overflow:hidden;
+    max-height:40px;
+  }
+
+  .days-header { display:grid; grid-template-columns:repeat(7,1fr); margin-bottom:6px; font-weight:bold; text-align:center; color:#007aff; }
+
+  /* Calendario semanal */
+  .calendar-week { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-bottom:20px; }
+  .week-day {
+    background:#f0f8ff;
+    border-radius:12px;
+    min-height:70px;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-start;
+    align-items:flex-start;
+    padding:6px;
+    font-size:12px;
+    transition: transform 0.2s, background 0.3s;
+  }
+  .week-day:hover { transform: translateY(-3px); background:#cfe6ff; }
+  .week-day.today { background:#007aff; color:#fff; font-weight:bold; }
+
+  .add-task { display:flex; gap:6px; margin-bottom:20px; }
+  input[type=text], input[type=number] {
+    padding:8px;
+    border-radius:8px;
+    border:1px solid #ccc;
+    font-size:14px;
+  }
+  input[type=text] { flex:1; }
+  button {
+    padding:8px 12px;
+    border:none;
+    border-radius:8px;
+    background:#007aff;
+    color:#fff;
+    cursor:pointer;
+    transition: background 0.3s, transform 0.2s;
+  }
+  button:hover { background:#005fcc; transform:translateY(-2px); }
+
+  /* Horario */
+  table { width:100%; border-collapse:collapse; margin-top:10px; }
+  th, td { border:1px solid #ccc; padding:8px; text-align:center; }
+  th { background:#007aff; color:#fff; }
+  td input { width:90%; border:none; border-radius:4px; padding:4px; text-align:center; }
+
+  /* Nombre del mes */
+  #monthLabel {
+    text-align:center;
+    font-size:28px;
+    font-weight:bold;
+    color:#000;
+    margin-bottom:12px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Calendario Completo</h1>
+
+<h2 id="monthLabel"></h2>
+<div class="days-header" id="monthDaysHeader"></div>
+<div class="calendar-month" id="calendarMonth"></div>
+<div class="add-task">
+  <input type="text" id="monthTaskInput" placeholder="Tarea / Examen / Trabajo">
+  <input type="number" id="monthTaskDay" min="1" max="31" placeholder="Día">
+  <button id="addMonthTaskBtn">Añadir</button>
+</div>
+
+<h2>Calendario Semanal</h2>
+<div class="calendar-week" id="calendarWeek"></div>
+
+<h2>Horario de Clases</h2>
+<table>
+<tr><th>Hora\Día</th><th>Lunes</th><th>Martes</th><th>Miércoles</th><th>Jueves</th><th>Viernes</th></tr>
+<tr><td>08:00-09:00</td><td><input></td><td><input></td><td><input></td><td><input></td><td><input></td></tr>
+<tr><td>09:00-10:00</td><td><input></td><td><input></td><td><input></td><td><input></td><td><input></td></tr>
+<tr><td>10:00-11:00</td><td><input></td><td><input></td><td><input></td><td><input></td><td><input></td></tr>
+<tr><td>11:00-12:00</td><td><input></td><td><input></td><td><input></td><td><input></td><td><input></td></tr>
+<tr><td>12:00-13:00</td><td><input></td><td><input></td><td><input></td><td><input></td><td><input></td></tr>
+<tr><td>13:00-14:00</td><td><input></td><td><input></td><td><input></td><td><input></td><td><input></td></tr>
+<tr><td>14:00-15:00</td><td><input></td><td><input></td><td><input></td><td><input></td><td><input></td></tr>
+</table>
+</div>
+
+<script>
+const currentDate = new Date();
+let monthDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+
+const calendarMonth = document.getElementById('calendarMonth');
+const monthDaysHeader = document.getElementById('monthDaysHeader');
+const monthLabel = document.getElementById('monthLabel');
+const monthTaskInput = document.getElementById('monthTaskInput');
+const monthTaskDay = document.getElementById('monthTaskDay');
+const addMonthTaskBtn = document.getElementById('addMonthTaskBtn');
+const calendarWeek = document.getElementById('calendarWeek');
+
+const dayNames = ['L','M','X','J','V','S','D'];
+monthDaysHeader.innerHTML='';
+dayNames.forEach(d=>{
+  const div=document.createElement('div'); div.style.textAlign='center'; div.textContent=d;
+  monthDaysHeader.appendChild(div);
+});
+
+function loadTasks(){ 
+  const data = localStorage.getItem('tasks'); 
+  return data ? JSON.parse(data) : []; 
+}
+
+function saveTasks(tasks){ 
+  localStorage.setItem('tasks',JSON.stringify(tasks)); 
+}
+
+function renderMonthly(){
+  calendarMonth.innerHTML='';
+  const year = monthDate.getFullYear();
+  const month = monthDate.getMonth();
+  monthLabel.textContent = monthDate.toLocaleDateString(undefined,{month:'long', year:'numeric'});
+
+  const firstDay = new Date(year, month,1);
+  const lastDay = new Date(year, month+1,0);
+  const pad = (firstDay.getDay()+6)%7;
+  for(let i=0;i<pad;i++){ calendarMonth.appendChild(document.createElement('div')); }
+  for(let d=1; d<=lastDay.getDate(); d++){
+    const dayDiv=document.createElement('div');
+    dayDiv.className='day';
+    dayDiv.textContent=d;
+    if(new Date(year,month,d).toDateString()===currentDate.toDateString()) dayDiv.classList.add('today');
+    const tasks = loadTasks().filter(t=>t.year===year && t.month===month && t.day===d);
+    if(tasks.length>0){
+      const tDiv=document.createElement('div'); tDiv.className='tasks-preview';
+      tDiv.textContent=tasks.map(t=>t.text).join(', ');
+      dayDiv.appendChild(tDiv);
+    }
+    calendarMonth.appendChild(dayDiv);
+  }
+  renderWeekly();
+}
+
+addMonthTaskBtn.addEventListener('click',()=>{
+  const text = monthTaskInput.value.trim();
+  const day = parseInt(monthTaskDay.value);
+  if(!text || !day) return;
+  const tasks = loadTasks();
+  tasks.push({text,year:monthDate.getFullYear(),month:monthDate.getMonth(),day});
+  saveTasks(tasks);
+  monthTaskInput.value=''; monthTaskDay.value='';
+  renderMonthly();
+});
+
+function renderWeekly(){
+  calendarWeek.innerHTML='';
+  const monday = new Date(currentDate);
+  const dayOfWeek = monday.getDay()==0?7:monday.getDay();
+  monday.setDate(currentDate.getDate()-dayOfWeek+1);
+  for(let i=0;i<7;i++){
+    const day = new Date(monday);
+    day.setDate(monday.getDate()+i);
+    const div=document.createElement('div');
+    div.className='week-day';
+    div.textContent = `${day.getDate()}/${day.getMonth()+1}`;
+    if(day.toDateString()===currentDate.toDateString()) div.classList.add('today');
+    const tasks = loadTasks().filter(t=>t.year===monthDate.getFullYear() && t.month===monthDate.getMonth() && t.day===day.getDate());
+    tasks.forEach(t=>{
+      const tDiv=document.createElement('div'); tDiv.className='tasks-preview'; tDiv.textContent=t.text;
+      div.appendChild(tDiv);
+    });
+    calendarWeek.appendChild(div);
+  }
+}
+
+// Actualiza automáticamente cada minuto para sincronizar con la fecha real
+setInterval(()=>{
+  const today = new Date();
+  if(today.getMonth()!==monthDate.getMonth() || today.getFullYear()!==monthDate.getFullYear()){
+    monthDate = new Date(today.getFullYear(), today.getMonth(),1);
+    renderMonthly();
+  }
+},60000);
+
+renderMonthly();
+</script>
+</body>
+</html>
